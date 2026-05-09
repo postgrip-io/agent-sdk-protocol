@@ -72,8 +72,13 @@ TRACKED_TYPES = [
 # script can be run from any of the four repos and pull whichever languages
 # aren't on disk. --from-github uses these for everything; otherwise we look
 # for sibling working dirs at agent-sdk-{language}/.
+#
+# Note the asymmetry: Go package files live at module root (idiomatic Go
+# layout means consumer imports are
+# `github.com/postgrip-io/agent-sdk-protocol`, not `…/src`). TS and Python
+# keep `src/` per their idiomatic layouts.
 GITHUB_RAW = {
-    "go":     "https://raw.githubusercontent.com/postgrip-io/agent-sdk-protocol/main/src/types.go",
+    "go":     "https://raw.githubusercontent.com/postgrip-io/agent-sdk-protocol/main/types.go",
     "ts":     "https://raw.githubusercontent.com/postgrip-io/agent-sdk-typescript/main/src/types.ts",
     "python": "https://raw.githubusercontent.com/postgrip-io/agent-sdk-python/main/src/postgrip_agent/types.py",
 }
@@ -81,13 +86,13 @@ GITHUB_RAW = {
 # checkout (CI in that repo will set --local to it so a PR's changes are
 # checked against the OTHER two languages fetched from github main).
 LOCAL_PATHS = {
-    "go":     Path("src/types.go"),
+    "go":     Path("types.go"),
     "ts":     Path("src/types.ts"),
     "python": Path("src/postgrip_agent/types.py"),
 }
 # Sibling working-dir layout for local development across all four repos.
 SIBLING_PATHS = {
-    "go":     REPO_ROOT.parent / "agent-sdk-protocol" / "src" / "types.go",
+    "go":     REPO_ROOT.parent / "agent-sdk-protocol" / "types.go",
     "ts":     REPO_ROOT.parent / "agent-sdk-typescript" / "src" / "types.ts",
     "python": REPO_ROOT.parent / "agent-sdk-python" / "src" / "postgrip_agent" / "types.py",
 }
