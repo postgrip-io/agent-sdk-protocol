@@ -1,5 +1,10 @@
 # agent-sdk-protocol
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/postgrip-io/agent-sdk-protocol.svg)](https://pkg.go.dev/github.com/postgrip-io/agent-sdk-protocol)
+[![CI](https://github.com/postgrip-io/agent-sdk-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/postgrip-io/agent-sdk-protocol/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/postgrip-io/agent-sdk-protocol?label=release&color=2563EB)](https://github.com/postgrip-io/agent-sdk-protocol/releases)
+[![License](https://img.shields.io/github/license/postgrip-io/agent-sdk-protocol?color=2563EB)](LICENSE)
+
 Wire-format types and Ed25519 task-result signing for the PostGrip Agent
 runtime service. **Single source of truth** for the runtime contract:
 `agent-sdk-go` imports it directly, the `postgrip-web` runtime imports
