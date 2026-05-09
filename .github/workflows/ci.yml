@@ -25,3 +25,19 @@ jobs:
         run: go vet ./src/...
       - name: go test
         run: go test ./src/...
+
+  # The protocol package is the source of truth for the wire contract; the
+  # drift check guarantees agent-sdk-typescript and agent-sdk-python keep
+  # type definitions whose field names match the Go structs here. A failing
+  # diff means either this PR is missing TS/Python mirror updates or this
+  # PR shouldn't change the wire shape at all. See tools/check_drift.py for
+  # what's checked and how to extend it.
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: check drift against agent-sdk-typescript and agent-sdk-python
+        run: python3 tools/check_drift.py --local go --from-github
