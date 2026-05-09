@@ -8,6 +8,8 @@ The wire-shape **source of truth** for the PostGrip Agent runtime. Two files of 
 
 The module path is `github.com/postgrip-io/agent-sdk-protocol` (no vanity — the SDK has one, but protocol is consumed transitively and the indirection isn't worth the routing setup yet).
 
+**This package is not customer-facing.** End-users of the SDK never write `protocol.Task` directly — the SDK aliases the wire types (in `agent-sdk-go/client/aliases.go`) so customers stay within the SDK namespace. When making changes here, skip the customer-facing ceremony: no elaborate release notes, no pkg.go.dev nudges, no docs site. A plain `git tag` is enough. The only consumer that cares about a protocol release is the SDK's `go.mod`, which can pin a tagged version when there's a meaningful reason to bump it.
+
 ## Commands
 
 ```sh
