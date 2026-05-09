@@ -3,12 +3,12 @@
 hand-mirrored TS / Python type definitions in the sibling SDK repos.
 
 The contract being checked: every exported wire-format struct in
-src/types.go has an equivalent type with matching field names in
+types.go has an equivalent type with matching field names in
 agent-sdk-typescript/src/types.ts and agent-sdk-python/src/postgrip_agent/types.py.
 
 What we check (deliberately narrow, since the source of truth is Go):
 
-    * Every exported Go struct in src/types.go (excluding pure-internal
+    * Every exported Go struct in types.go (excluding pure-internal
       helpers like requests/responses unique to the runtime API surface)
       appears with the same name in the TS and Python type files.
     * Every JSON-tagged field on those Go structs has a same-name field on
@@ -280,7 +280,7 @@ def main() -> int:
     for name in TRACKED_TYPES:
         go_fields = go_types.get(name)
         if go_fields is None:
-            failures.append(f"  {name}: not found in src/types.go (TRACKED_TYPES out of date?)")
+            failures.append(f"  {name}: not found in types.go (TRACKED_TYPES out of date?)")
             continue
         ts_fields = ts_types.get(name)
         if ts_fields is None:
