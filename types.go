@@ -15,10 +15,11 @@ const (
 	AgentPollDirectiveTypePollNow  = "poll_now"
 	AgentPollDirectiveTypeAttest   = "attest"
 
-	TaskTypeNoop          = "noop"
-	TaskTypeShellExec     = "shell.exec"
-	TaskTypeContainerExec = "container.exec"
-	TaskTypeTimer         = "timer"
+	TaskTypeNoop            = "noop"
+	TaskTypeShellExec       = "shell.exec"
+	TaskTypeContainerExec   = "container.exec"
+	TaskTypeWorkflowRuntime = "workflow.runtime"
+	TaskTypeTimer           = "timer"
 
 	TaskTypePrefixWorkflow = "workflow:"
 	TaskTypePrefixActivity = "activity:"
@@ -650,6 +651,21 @@ type ContainerExecPayload struct {
 	Env            map[string]string `json:"env,omitempty"`
 	WorkingDir     string            `json:"working_dir,omitempty"`
 	PullPolicy     string            `json:"pull_policy,omitempty"`
+	TimeoutSeconds int               `json:"timeout_seconds,omitempty"`
+}
+
+// WorkflowRuntimePayload starts a supervised SDK workflow runtime under an
+// already-enrolled PostGrip agent. The host agent injects delegated agent
+// credentials and limits its own polling to operational task types, while the
+// SDK runtime polls workflow/activity/query/update task families.
+type WorkflowRuntimePayload struct {
+	RuntimeID      string            `json:"runtime_id,omitempty"`
+	Command        string            `json:"command"`
+	Args           []string          `json:"args,omitempty"`
+	Env            map[string]string `json:"env,omitempty"`
+	WorkingDir     string            `json:"working_dir,omitempty"`
+	Namespace      string            `json:"namespace,omitempty"`
+	Queue          string            `json:"queue,omitempty"`
 	TimeoutSeconds int               `json:"timeout_seconds,omitempty"`
 }
 

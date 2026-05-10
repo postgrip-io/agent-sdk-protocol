@@ -25,15 +25,18 @@ What we *don't* check yet (room for v2):
 Usage:
 
     python3 tools/check_drift.py                 # check the local checkout
-    python3 tools/check_drift.py --from-github   # fetch TS/Python from main
+    python3 tools/check_drift.py --from-github   # fetch peers from GitHub
+    python3 tools/check_drift.py --from-github --github-ref "$BRANCH"
 
 Exit codes: 0 clean, 1 drift detected, 2 tooling failure.
 """
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Iterable
@@ -54,6 +57,7 @@ TRACKED_TYPES = [
     "ContinueAsNewResult",
     "ShellExecPayload",
     "ContainerExecPayload",
+    "WorkflowRuntimePayload",
     "TimerPayload",
     "ActivityTaskPayload",
     "WorkflowPayload",
@@ -77,10 +81,10 @@ TRACKED_TYPES = [
 # layout means consumer imports are
 # `github.com/postgrip-io/agent-sdk-protocol`, not `…/src`). TS and Python
 # keep `src/` per their idiomatic layouts.
-GITHUB_RAW = {
-    "go":     "https://raw.githubusercontent.com/postgrip-io/agent-sdk-protocol/main/types.go",
-    "ts":     "https://raw.githubusercontent.com/postgrip-io/agent-sdk-typescript/main/src/types.ts",
-    "python": "https://raw.githubusercontent.com/postgrip-io/agent-sdk-python/main/src/postgrip_agent/types.py",
+GITHUB_SOURCES = {
+    "go":     ("postgrip-io", "agent-sdk-protocol", "types.go"),
+    "ts":     ("postgrip-io", "agent-sdk-typescript", "src/types.ts"),
+    "python": ("postgrip-io", "agent-sdk-python", "src/postgrip_agent/types.py"),
 }
 # Repo-local paths, keyed by --local: the language whose types live in this
 # checkout (CI in that repo will set --local to it so a PR's changes are
@@ -226,6 +230,33 @@ def load(path_or_url: str | Path, *, from_github: bool) -> str:
         return fh.read()
 
 
+def github_raw_url(lang: str, ref: str) -> str:
+    owner, repo, path = GITHUB_SOURCES[lang]
+    return f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/{path}"
+
+
+def github_ref_candidates(preferred_ref: str) -> list[str]:
+    preferred_ref = preferred_ref.strip() or "main"
+    refs = [preferred_ref]
+    if preferred_ref != "main":
+        refs.append("main")
+    return refs
+
+
+def load_from_github(lang: str, refs: list[str]) -> str:
+    last_err: Exception | None = None
+    for ref in refs:
+        try:
+            return load(github_raw_url(lang, ref), from_github=True)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 404:
+                raise
+            last_err = exc
+    raise RuntimeError(
+        f"could not fetch {lang} type file from GitHub refs {', '.join(refs)}"
+    ) from last_err
+
+
 def diff_field_sets(
     name: str, lang: str, go_fields: set[str], lang_fields: set[str],
 ) -> Iterable[str]:
@@ -249,9 +280,18 @@ def main() -> int:
         choices=("go", "ts", "python"),
         help="language whose type file should be read from this checkout (typically set by CI in the SDK repo of that language). Other two are fetched per --from-github / sibling-working-dir.",
     )
+    ap.add_argument(
+        "--github-ref",
+        default=os.environ.get("POSTGRIP_AGENT_SDK_DRIFT_REF")
+        or os.environ.get("GITHUB_HEAD_REF")
+        or os.environ.get("GITHUB_REF_NAME")
+        or "main",
+        help="preferred GitHub ref for --from-github peers; falls back to main when the ref is missing in a peer repo.",
+    )
     args = ap.parse_args()
 
     sources: dict[str, str] = {}
+    github_refs = github_ref_candidates(args.github_ref)
     for lang in ("go", "ts", "python"):
         if args.local == lang:
             try:
@@ -260,7 +300,11 @@ def main() -> int:
                 print(f"check_drift: --local={lang} but {e}", file=sys.stderr)
                 return 2
         elif args.from_github:
-            sources[lang] = load(GITHUB_RAW[lang], from_github=True)
+            try:
+                sources[lang] = load_from_github(lang, github_refs)
+            except RuntimeError as e:
+                print(f"check_drift: {e}", file=sys.stderr)
+                return 2
         else:
             try:
                 sources[lang] = load(SIBLING_PATHS[lang], from_github=False)

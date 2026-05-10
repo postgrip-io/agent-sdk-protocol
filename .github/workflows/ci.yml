@@ -40,4 +40,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: check drift against agent-sdk-typescript and agent-sdk-python
-        run: python3 tools/check_drift.py --local go --from-github
+        run: python3 tools/check_drift.py --local go --from-github --github-ref "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
