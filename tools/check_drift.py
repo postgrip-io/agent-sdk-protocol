@@ -54,6 +54,7 @@ TRACKED_TYPES = [
     "ContinueAsNewResult",
     "ShellExecPayload",
     "ContainerExecPayload",
+    "WorkflowRuntimePayload",
     "TimerPayload",
     "ActivityTaskPayload",
     "WorkflowPayload",
