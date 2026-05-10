@@ -405,8 +405,16 @@ const (
 )
 
 type WorkflowExecution struct {
-	ID               string         `json:"id"`
-	RunID            string         `json:"run_id"`
+	ID    string `json:"id"`
+	RunID string `json:"run_id"`
+	// AgentID is the agent currently holding (or last to have held)
+	// the lease on a task that belongs to this workflow — workflow
+	// task or activity task. The orchestrator stamps it when it
+	// hands out the lease, so UIs can attribute "which agent is
+	// running this workflow" without an N+1 join through tasks or
+	// a walk over workflow_history. Empty until the workflow's
+	// first task is leased.
+	AgentID          string         `json:"agent_id,omitempty"`
 	TenantID         string         `json:"tenantId,omitempty"`
 	Namespace        string         `json:"namespace"`
 	Type             string         `json:"type"`
